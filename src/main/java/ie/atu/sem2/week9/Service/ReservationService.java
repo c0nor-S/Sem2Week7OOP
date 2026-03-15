@@ -1,46 +1,51 @@
 package ie.atu.sem2.week9.Service;
 
 import ie.atu.sem2.week9.Model.Reservation;
+import ie.atu.sem2.week9.Repository.ReservationRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReservationService {
-    private List<Reservation> reservations = new ArrayList<>();
-    private Long nextId = 1;
+    private List<Reservation> reservations;
+    private final ReservationRepository reservationRepository;
+
+    public ReservationService(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
+    }
 
     public Reservation addReservation(Reservation reservation) {
-        reservation.setReservationId(nextId++);
 
-        for(Reservation exsiting : reservations) {
-            if(exsiting.getEquipmentTag().equals(reservation.getEquipmentTag()) &&
+        reservations = reservationRepository.findAll();
+
+        for(Reservation existing : reservations) {
+            if(existing.getEquipmentTag().equals(reservation.getEquipmentTag()) &&
             existing.getReservationDate().equals(reservation.getReservationDate())) {
 
                 int existingStart = existing.startHour();
-                int existingEnd = existingStart + exsiting.getDurationHours();
+                int existingEnd = existingStart + existing.getDurationHours();
 
                 int newStart = reservation.getStartHour();
                 int newEnd = newStart + reservation.getDurationHours();
 
                 if(existingStart < newEnd && newStart < existingEnd) {
-                    reservation.setReservationId(nextId--);
                     throw new ReservationConflictException("Time Slot Already Booked.");
                 }
             }
         }
-        reservations.add(reservation);
+        reservationRepository.save(reservation);
         return reservation;
     }
     public List<Reservation> getAllReservations() {
-        return reservations;
+        return reservationRepository.findAll();
     }
 
     public Reservation getReservationById(Long Id) {
-        for(Reservation reservation : reservations) {
-            if(reservation.getReservationById().equals(id)) {
-                return reservation;
-            }
-        }
-        throw new ReservationNotFoundException("Reservation Not Found.");
+        return reservationRepository.findById(Id).orElseThrow(() -> new ReservationNotFoundException("Reservation Not Found."));
+    }
+
+    public List<Reservation> getAllReservationsByDate(LocalDate reservationDate) {
+        return reservationRepository.findByReservationDate(reservationDate);
     }
 }
