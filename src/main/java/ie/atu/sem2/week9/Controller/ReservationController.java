@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class ReservationController {
@@ -33,5 +34,10 @@ public class ReservationController {
     @GetMapping("/{id}")
     public ResponseEntity<Reservation> getById(@PathVariable Long id) {
         return ResponseEntity.ok(reservationService.getReservationById(id));
+    }
+
+    @GetMapping("/date/{date}")
+    public ResponseEntity<List<Reservation>> getByDate(@PathVariable LocalDate date) {
+        return ResponseEntity.ok(reservationService.getAllReservationsByDate(date));
     }
 }
